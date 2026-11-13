@@ -12,7 +12,7 @@ struct CameraPreviewView: UIViewRepresentable {
     let session: AVCaptureSession
     
     class VideoPreviewView: UIView {
-        // 1. Tell UIKit: "Do not use standard CALayer; use AVCaptureVideoPreviewLayer instead!"
+        // 1. Tell UIKit: "Do not use standard CALayer; use AVCaptureVideoPreviewLayer instead!!"
         
         override class var layerClass: AnyClass {
             AVCaptureVideoPreviewLayer.self
