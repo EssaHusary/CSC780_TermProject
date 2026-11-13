@@ -83,10 +83,12 @@ class NutritionParser {
         
         var facts = NutritionFacts()
         
-        let caloriesOptional = matchDouble(pattern: #/(?i)calories\D*?(\d{1,4})/#, in: lines)
-        if let calories = caloriesOptional {
-            facts.calories = Int(calories)    // Most nutrition labels from around the world round Calories to the nearest Integer
-        }
+//        let caloriesOptional = matchDouble(pattern: #/(?i)calories\D*?(\d{1,4})/#, in: lines)
+//        if let calories = caloriesOptional {
+//            facts.calories = Int(calories)    // Most nutrition labels worldwide round Calories to the nearest Integer, so this is safe.
+//        }
+        
+        facts.calories = matchDouble(pattern: #/(?i)calories\D*?(\d{1,4})/#, in: lines)
         
         facts.totalFat = matchDouble(pattern: #/(?i)total\s*fat\D*?(\d+(?:\.\d+)?)\s*g/#, in: lines)
         
