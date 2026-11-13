@@ -15,6 +15,7 @@ class CameraManager: NSObject, ObservableObject {
     @Published var capturedImage: UIImage?
     @Published var permissionGranted = false
     @Published var isSessionRunning = false
+    @Published var parsedNutritionFacts: NutritionFacts?
     
     let session = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
@@ -111,8 +112,9 @@ extension CameraManager: AVCapturePhotoCaptureDelegate {
             return
         }
         
-        DispatchQueue.main.async {
+        Task { @MainActor in
             self.capturedImage = image
+            self.parsedNutritionFacts = await NutritionParser.parse(image: image)
         }
     }
 }

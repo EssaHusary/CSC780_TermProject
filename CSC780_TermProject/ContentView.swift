@@ -10,7 +10,7 @@ import SwiftUI
 struct ContentView: View {
     
     @StateObject private var cameraManager = CameraManager()
-    @State private var didCapturePhoto = false
+    
     
     var body: some View {
 //        WelcomePage()
@@ -33,15 +33,14 @@ struct ContentView: View {
                 Button("") {
                     Task {
                         cameraManager.capturePhoto()
-                        didCapturePhoto = true
                     }
                 }
                 .buttonStyle(.borderedProminent)
                 .buttonBorderShape(.circle)
                 .controlSize(.large)
-                .sheet(isPresented: $didCapturePhoto) {
+                .sheet(item: $cameraManager.parsedNutritionFacts) { nutritionFacts in
                     
-                    NutritionSheet(capturedPhoto: cameraManager.capturedImage)
+                    NutritionSheet(nutritionFacts: nutritionFacts)
                     
                 }
                 
@@ -55,38 +54,23 @@ struct ContentView: View {
 
 struct NutritionSheet: View {
     
-    var capturedPhoto: UIImage? // Passed from ContentView!
-    @State var nutritionFacts: NutritionFacts?
+    @State var nutritionFacts: NutritionFacts
     
     var body: some View {
         
         VStack {
             
-            if let facts = nutritionFacts {
+            List {
                 
-                List {
-                    
-                    Row(macroNutrient: "Calories", macroNutrientValue: facts.calories, unit: "kcal")
-                    Row(macroNutrient: "Total Fat", macroNutrientValue: facts.totalFat, unit: "g")
-                    Row(macroNutrient: "Total Carbs", macroNutrientValue: facts.totalCarbohydrates, unit: "g")
-                    Row(macroNutrient: "Protein", macroNutrientValue: facts.protein, unit: "g")
-                    Row(macroNutrient: "Sodium", macroNutrientValue: facts.sodium, unit: "mg")
-                    
-                }
-                
-            } else {
-                
-                Text("loading")
+                Row(macroNutrient: "Calories", macroNutrientValue: nutritionFacts.calories, unit: "kcal")
+                Row(macroNutrient: "Total Fat", macroNutrientValue: nutritionFacts.totalFat, unit: "g")
+                Row(macroNutrient: "Total Carbs", macroNutrientValue: nutritionFacts.totalCarbohydrates, unit: "g")
+                Row(macroNutrient: "Protein", macroNutrientValue: nutritionFacts.protein, unit: "g")
+                Row(macroNutrient: "Sodium", macroNutrientValue: nutritionFacts.sodium, unit: "mg")
                 
             }
             
-            
         }
-        .task(id: capturedPhoto) {
-            guard let image = capturedPhoto else { return }
-            nutritionFacts = await NutritionParser.parse(image: image)
-        }
-        
         
     }
 }

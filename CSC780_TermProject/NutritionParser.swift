@@ -8,7 +8,7 @@
 import UIKit
 import Vision
 
-class NutritionParser {
+struct NutritionParser {
     
     /// Main entry point: takes a UIImage, runs Vision OCR on a background thread, and returns NutritionFacts.
     static func parse(image: UIImage) async -> NutritionFacts {
