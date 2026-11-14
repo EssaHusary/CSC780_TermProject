@@ -28,13 +28,15 @@ struct NutritionSheet: View {
                 Row(macroNutrient: "Added Sugars", macroNutrientValue: nutritionFacts.addedSugars, unit: "g")
                 Row(macroNutrient: "Protein", macroNutrientValue: nutritionFacts.protein, unit: "g")
                 
+                Text("\(interpretations[0])")
+                Text("\(interpretations[1])")
+                Text("\(interpretations[2])")
+                Text("\(interpretations[3])")
+                Text("\(interpretations[4])")
+                
             }
             
-            Text("\(interpretations[0])")
-            Text("\(interpretations[1])")
-            Text("\(interpretations[2])")
-            Text("\(interpretations[3])")
-            Text("\(interpretations[4])")
+            
             
         }
         
