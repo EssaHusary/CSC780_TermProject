@@ -83,20 +83,22 @@ struct NutritionParser {
         
         var facts = NutritionFacts()
         
-//        let caloriesOptional = matchDouble(pattern: #/(?i)calories\D*?(\d{1,4})/#, in: lines)
-//        if let calories = caloriesOptional {
-//            facts.calories = Int(calories)    // Most nutrition labels worldwide round Calories to the nearest Integer, so this is safe.
-//        }
-        
         facts.calories = matchDouble(pattern: #/(?i)calories\D*?(\d{1,4})/#, in: lines)
         
-        facts.totalFat = matchDouble(pattern: #/(?i)total\s*fat\D*?(\d+(?:\.\d+)?)\s*g/#, in: lines)
+        facts.saturatedFat = matchDouble(pattern: #/(?i)\bsat(?:urated)?\.?\s*fats?[^\d\n]*?(\d+(?:\.\d+)?)\s*g/#, in: lines)
         
-        facts.totalCarbohydrates = matchDouble(pattern: #/(?i)total\s*carb[a-z.]*\D*?(\d+(?:\.\d+)?)\s*g/#, in: lines)
+        facts.sodium = matchDouble(pattern: #/(?i)sodium\D*?(\d+(?:\.\d+)?)\s*m?g/#, in: lines)
+        
+        facts.addedSugars = matchDouble(
+            pattern: #/(?i)(\d+(?:\.\d+)?)\s*g[\s\-•:]*added\s*sugars?/#,
+            in: lines
+        ) ?? matchDouble(
+            pattern: #/(?i)added\s*sugars?[^\d\n]*?(\d+(?:\.\d+)?)\s*g/#,
+            in: lines
+        )
         
         facts.protein = matchDouble(pattern: #/(?i)protein\D*?(\d+(?:\.\d+)?)\s*g/#, in: lines)
         
-        facts.sodium = matchDouble(pattern: #/(?i)sodium\D*?(\d+(?:\.\d+)?)\s*m?g/#, in: lines)
         
         
         return facts

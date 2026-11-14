@@ -63,6 +63,6 @@ struct WelcomePage: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    ContentView(interpreter: <#Interpreter#>)
+//}

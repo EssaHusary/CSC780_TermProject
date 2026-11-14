@@ -12,6 +12,10 @@ struct NutritionSheet: View {
     
     @State var nutritionFacts: NutritionFacts
     
+    var interpretations: [String] {
+        Interpreter(parsedNutritionFacts: nutritionFacts).interpret()
+    }
+    
     var body: some View {
         
         VStack {
@@ -19,12 +23,18 @@ struct NutritionSheet: View {
             List {
                 
                 Row(macroNutrient: "Calories", macroNutrientValue: nutritionFacts.calories, unit: "kcal")
-                Row(macroNutrient: "Total Fat", macroNutrientValue: nutritionFacts.totalFat, unit: "g")
-                Row(macroNutrient: "Total Carbs", macroNutrientValue: nutritionFacts.totalCarbohydrates, unit: "g")
-                Row(macroNutrient: "Protein", macroNutrientValue: nutritionFacts.protein, unit: "g")
+                Row(macroNutrient: "Saturated Fats", macroNutrientValue: nutritionFacts.saturatedFat, unit: "g")
                 Row(macroNutrient: "Sodium", macroNutrientValue: nutritionFacts.sodium, unit: "mg")
+                Row(macroNutrient: "Added Sugars", macroNutrientValue: nutritionFacts.addedSugars, unit: "g")
+                Row(macroNutrient: "Protein", macroNutrientValue: nutritionFacts.protein, unit: "g")
                 
             }
+            
+            Text("\(interpretations[0])")
+            Text("\(interpretations[1])")
+            Text("\(interpretations[2])")
+            Text("\(interpretations[3])")
+            Text("\(interpretations[4])")
             
         }
         
