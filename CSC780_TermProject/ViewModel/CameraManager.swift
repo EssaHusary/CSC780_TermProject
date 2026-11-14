@@ -9,12 +9,13 @@ import AVFoundation
 import UIKit
 import Combine
 
+// https://youtu.be/cLnw5z8ZGqM?si=ERRnIjfBKnxBLrkb
+
 class CameraManager: NSObject, ObservableObject {
     
-    // Published properties that automatically update SwiftUI views
-    @Published var capturedImage: UIImage?
+    @Published var image: UIImage?
+    @Published var isRunning = false
     @Published var permissionGranted = false
-    @Published var isSessionRunning = false
     @Published var parsedNutritionFacts: NutritionFacts?
     
     let session = AVCaptureSession()
@@ -22,99 +23,120 @@ class CameraManager: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "com.csc780.cameraSessionQueue")
     private var isConfigured = false
     
-    override init() {
+    
+    override init(){
         super.init()
         checkPermissions()
     }
     
-    func checkPermissions() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
+    func checkPermissions(){
+        switch AVCaptureDevice.authorizationStatus(for: .video){
+            
         case .authorized:
-            DispatchQueue.main.async { self.permissionGranted = true }
-            startSession()
+            permissionGranted = true
+            
         case .notDetermined:
-            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-                DispatchQueue.main.async { self?.permissionGranted = granted }
-                if granted { self?.startSession() }
+            Task {
+                await AVCaptureDevice.requestAccess(for: .video)
             }
-        default:
-            DispatchQueue.main.async { self.permissionGranted = false }
-        }
-    }
-    
-    func startSession() {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if !self.isConfigured {
-                self.configureSession()
-            }
-            if !self.session.isRunning {
-                self.session.startRunning()
-                DispatchQueue.main.async { self.isSessionRunning = true }
-            }
-        }
-    }
-    
-    func stopSession() {
-        sessionQueue.async { [weak self] in
-            guard let self = self else { return }
-            if self.session.isRunning {
-                self.session.stopRunning()
-                DispatchQueue.main.async { self.isSessionRunning = false }
-            }
-        }
-    }
-    
-    private func configureSession() {
-        session.beginConfiguration()
-        session.sessionPreset = .photo
-        
-        // 1. Add back wide-angle camera input
-        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
-              let videoInput = try? AVCaptureDeviceInput(device: videoDevice),
-              session.canAddInput(videoInput) else {
-            session.commitConfiguration()
+            
+        case .denied:
+            return
+            
+        case .restricted:
+            return
+            
+        @unknown default:
             return
         }
-        session.addInput(videoInput)
+    }
+    
+    
+    func configureSession(){
         
-        // 2. Enable continuous autofocus for close-up nutrition text
-        if videoDevice.isFocusModeSupported(.continuousAutoFocus) {
-            try? videoDevice.lockForConfiguration()
-            videoDevice.focusMode = .continuousAutoFocus
-            videoDevice.unlockForConfiguration()
+        session.beginConfiguration()
+        
+        guard let captureDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+              let captureDeviceInput = try? AVCaptureDeviceInput(device: captureDevice) else {
+                      return
         }
         
-        // 3. Add photo output
-        if session.canAddOutput(photoOutput) {
+        if session.canAddInput(captureDeviceInput) {
+            session.addInput(captureDeviceInput)
+        } else {
+            
+            return
+        
+        }
+        
+        if session.canAddOutput(photoOutput){
             session.addOutput(photoOutput)
         }
         
         session.commitConfiguration()
-        isConfigured = true
+        self.isConfigured = true
+        
     }
     
-    /// Triggers the hardware camera shutter
-    func capturePhoto() {
+    func startSession(){
+        sessionQueue.async {[weak self] in
+            
+            guard let self = self else {
+                return
+            }
+            
+            if !self.isConfigured {
+                self.configureSession()
+            }
+            if !self.isRunning {
+                session.startRunning()
+                DispatchQueue.main.async { self.isRunning = true }
+            }
+            
+        }
+    }
+    
+    func stopSession(){
+        sessionQueue.async {[weak self] in
+            
+            guard let self = self else {
+                return
+            }
+            
+            if self.isRunning {
+                session.stopRunning()
+                DispatchQueue.main.async { self.isRunning = false }
+            }
+            
+        }
+    }
+    
+    func capturePhoto(){
+        
         let settings = AVCapturePhotoSettings()
         photoOutput.capturePhoto(with: settings, delegate: self)
+        
     }
+    
 }
-
-// MARK: - Photo Capture Delegate
+//MARK: - Photo Capture Delegate
 extension CameraManager: AVCapturePhotoCaptureDelegate {
+    
     func photoOutput(_ output: AVCapturePhotoOutput,
-                     didFinishProcessingPhoto photo: AVCapturePhoto,
-                     error: Error?) {
+                         didFinishProcessingPhoto photo: AVCapturePhoto,
+                         error: Error?) {
         guard error == nil,
               let imageData = photo.fileDataRepresentation(),
               let image = UIImage(data: imageData) else {
             return
         }
         
-        Task { @MainActor in
-            self.capturedImage = image
+        Task {@MainActor in
+            
+            self.image = image
             self.parsedNutritionFacts = await NutritionParser.parse(image: image)
+            
         }
     }
+    
 }
