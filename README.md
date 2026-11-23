@@ -1,0 +1,1 @@
+This is my Nutrition Interpreter app! A user may snap a photo of a nutrition label, and this label's macronutrients will be interpreted for them in terms of their nutritional values (or lack thereof).
