@@ -16,8 +16,7 @@ struct ContentView: View {
         
         if !cameraManager.permissionGranted {
             
-            Text("Please provide permission to access your camera.")
-                .font(.largeTitle)
+            RequestPermissionsView()
         
         } else {
             
